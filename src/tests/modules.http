@@ -1,0 +1,28 @@
+@endpoint = http://localhost:3000/api/v1/modules
+
+# @name postModule
+POST {{endpoint}} HTTP/1.1
+content-type: application/json
+
+{ "name": "Web Programming 2", "code": "COMP07180", "lecturer": "Mrs L'Estrange", "semester": 1 }
+
+###
+POST {{endpoint}} HTTP/1.1
+content-type: application/json
+
+{"name":"Mobile Application Development", "code": "COMP07170", "lecturer":"Mr Kohlmann", "semester": 1}
+
+###
+@newModule = {{postModule.response.body._id}}
+
+###
+GET {{endpoint}} HTTP/1.1
+
+###
+GET {{endpoint}}/{{newModule}} HTTP/1.1
+
+###
+POST {{endpoint}} HTTP/1.1
+content-type: application/json
+
+{ "name": "", "semester": 7 }
