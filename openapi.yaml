@@ -1,0 +1,223 @@
+openapi: 3.0.3
+info:
+  title: Study Planner API
+  version: 1.0.0
+  description: REST API for managing university modules and the study tasks that belong to them.
+servers:
+  - url: http://localhost:3000/api/v1
+tags:
+  - name: Modules
+  - name: Tasks
+
+paths:
+  /modules:
+    get:
+      tags: [Modules]
+      summary: Get all modules
+      responses:
+        "200":
+          description: List of modules
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Module" }
+    post:
+      tags: [Modules]
+      summary: Create a module
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ModuleInput" }
+      responses:
+        "201":
+          description: Module created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Module" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /modules/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Modules]
+      summary: Get one module
+      responses:
+        "200":
+          description: The module
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Module" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Modules]
+      summary: Update a module
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ModuleInput" }
+      responses:
+        "200":
+          description: Updated module
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Module" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Modules]
+      summary: Delete a module
+      responses:
+        "204": { description: Deleted, no content }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /tasks:
+    get:
+      tags: [Tasks]
+      summary: Get all tasks, optionally filtered, sorted by earliest due date
+      parameters:
+        - name: module
+          in: query
+          description: Only tasks belonging to this module id
+          schema: { type: string, example: 652f1c2e9b1d8a0012345678 }
+        - name: priority
+          in: query
+          schema: { type: string, enum: [low, medium, high] }
+        - name: completed
+          in: query
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Task" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+    post:
+      tags: [Tasks]
+      summary: Create a task (the module must exist)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskInput" }
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /tasks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Tasks]
+      summary: Get one task
+      responses:
+        "200":
+          description: The task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Tasks]
+      summary: Update a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaskInput" }
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Task" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Tasks]
+      summary: Delete a task
+      responses:
+        "204": { description: Deleted, no content }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: 24-character MongoDB id
+      schema: { type: string, example: 652f1c2e9b1d8a0012345678 }
+
+  responses:
+    BadRequest:
+      description: Invalid id or the data failed validation
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: No record with that id
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    ModuleInput:
+      type: object
+      required: [name, code, lecturer, semester]
+      properties:
+        name: { type: string, minLength: 1, example: Web Programming 2 }
+        code: { type: string, minLength: 2, example: COMP07180 }
+        lecturer: { type: string, minLength: 1, example: Dr Smith }
+        semester: { type: integer, minimum: 1, maximum: 2, example: 1 }
+    Module:
+      allOf:
+        - $ref: "#/components/schemas/ModuleInput"
+        - type: object
+          properties:
+            _id: { type: string, example: 652f1c2e9b1d8a0012345678 }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    TaskInput:
+      type: object
+      required: [title, dueDate, priority, module]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 100, example: Finish worksheet 4 }
+        description: { type: string, example: Do tasks 1 to 4 }
+        dueDate: { type: string, format: date, example: "2026-11-01" }
+        priority: { type: string, enum: [low, medium, high] }
+        completed: { type: boolean, default: false }
+        module:
+          type: string
+          description: Id of the module this task belongs to
+          example: 652f1c2e9b1d8a0012345678
+    Task:
+      allOf:
+        - $ref: "#/components/schemas/TaskInput"
+        - type: object
+          properties:
+            _id: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+    Error:
+      type: object
+      properties:
+        message: { type: string, example: Module not found }
+        errors:
+          type: array
+          description: Zod validation issues
+          items: { type: object }
