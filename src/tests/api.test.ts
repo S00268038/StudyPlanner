@@ -5,7 +5,7 @@ import "dotenv/config"; // Vitest doesn't load .env by itself
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import mongoose from "mongoose";
-import app from "../app.js";
+import app from "../app.js" ;
 
 const FAKE_ID = new mongoose.Types.ObjectId().toString(); // always a valid id that matches nothing
 
