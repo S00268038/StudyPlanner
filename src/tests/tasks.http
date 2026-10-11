@@ -1,0 +1,43 @@
+@endpoint = http://localhost:3000/api/v1/tasks
+
+# @name postModule
+POST http://localhost:3000/api/v1/modules HTTP/1.1
+content-type: application/json
+
+{ "name": "Professional Development", "code": "CRR07008", "lecturer": "Mrs Mitchell", "semester": 1 }
+
+
+
+###
+@moduleId = {{postModule.response.body._id}}
+
+###
+# @name postTask
+POST {{endpoint}} HTTP/1.1
+content-type: application/json
+
+{ "title": "Finish worksheet 4", "description": "Do tasks 1 to 4", "dueDate": "2026-11-01", "priority": "high", "module": "{{moduleId}}" }
+
+###
+# @name postTask
+POST {{endpoint}} HTTP/1.1
+content-type: application/json
+
+{ "title": "Read Chapter 5", "dueDate": "2026-11-15", "priority": "medium", "module": "{{moduleId}}" }
+###
+@taskId = {{postTask.response.body._id}}
+
+###
+GET {{endpoint}} HTTP/1.1
+
+###
+GET {{endpoint}}?priority=high&module={{moduleId}} HTTP/1.1
+
+###
+GET {{endpoint}}/{{taskId}} HTTP/1.1
+
+###
+POST {{endpoint}} HTTP/1.1
+content-type: application/json
+
+{ "title": "", "priority": "banana" }
